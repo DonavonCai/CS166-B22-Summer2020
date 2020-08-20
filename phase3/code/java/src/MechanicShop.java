@@ -303,37 +303,246 @@ public class MechanicShop{
 		}while (true);
 		return input;
 	}//end readChoice
-	
+
+	// Print a prompt and read user input as string
+	private static String readString(String prompt) {
+		String input;		
+		do {
+			System.out.println(prompt);
+			try {
+				input = in.readLine();
+				break;
+			} catch (Exception e) {
+				System.out.println("invalid input");
+				continue;
+			}
+		} while(true);
+
+		return input;
+	}
+
+	private static int readInt(String prompt) {
+		int input;
+		do {
+			System.out.println(prompt);
+			try {
+				input = Integer.parseInt(in.readLine());
+				break;	
+			} catch (Exception e) {
+				System.out.println("invalid input");
+				continue;
+			}
+		} while(true);
+
+		return input;
+	}
+
 	public static void AddCustomer(MechanicShop esql){//1
-		
+		// prompt user for data
+		String fname;
+		String lname;
+		String phone;
+		int id;
+		String address;
+
+		id = readInt("ID:");
+		fname = readString("First name:");
+		lname = readString("Last name:");
+		phone = readString("Phone number:");
+		address = readString("Address:");
+
+		// create SQL instruction
+		String sql;
+		sql = "INSERT INTO Customer(id, fname, lname, phone, address) VALUES (\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
+		System.out.println(sql);
+
+		// execute
+		try {
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Add Customer failed:");
+			System.out.println(e);
+		}
 	}
 	
 	public static void AddMechanic(MechanicShop esql){//2
-		
+		// prompt user for data
+		String fname;
+		String lname;
+		int id;
+		int years_exp;
+
+		id = readInt("ID:");
+		fname = readString("First name:");
+		lname = readString("Last name:");
+
+		do {
+			years_exp = readInt("Years of experience:");
+			if (years_exp < 0 || years_exp > 100) {
+				System.out.println("Years of experience must be between 0-100");
+				continue;
+			}
+			break;
+		} while(true);
+
+		// create SQL instruction
+		String sql;
+		sql = "INSERT INTO Mechanic(id, fname, lname, experience) VALUES (\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + years_exp + "\');";
+		System.out.println(sql);
+
+		// execute
+		try {
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Add Mechanic failed:");
+			System.out.println(e);
+		}
 	}
 	
 	public static void AddCar(MechanicShop esql){//3
-		
+		// prompt user for data
+		String vin;
+		String make;
+		String model;
+		int year;
+
+		vin = readString("VIN:");
+		make = readString("Make:");
+		model = readString("Model:");
+
+		do {
+			year = readInt("Year:");
+			if (year < 1970) {
+				System.out.println("Year must be >= 1970");
+				continue;
+			}
+			break;
+		} while(true);
+
+		// create SQL instruction
+		String sql;
+		sql = "INSERT INTO Car(vin, make, model, year) VALUES (\'" + vin + "\', \'" + make + "\', \'" + model + "\', \'" + Integer.toString(year) + "\');";
+		System.out.println(sql);
+
+		// execute
+		try {
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Add Car failed:");
+			System.out.println(e);
+		}	
 	}
 	
 	public static void InsertServiceRequest(MechanicShop esql){//4
+		int rid;
+		int customer_id;
+		String car_vin;
+		String date; // YYYY-MM-DD
+		int odometer;
+		String complain;
+
+		rid = readInt("rid:");
+		customer_id = readInt("customer id:");
+		car_vin = readString("car vin:");
+		date = readString("date: (YYYY-MM-DD)");
 		
+		do {
+			odometer = readInt("odometer:");
+			if (odometer <= 0) {
+				System.out.println("odometer reading must be > 0");
+				continue;
+			}
+			break;
+		} while(true);
+
+		complain = readString("complain:");
+
+		String sql;
+		sql = "INSERT INTO Service_Request(rid, customer_id, car_vin, date, odometer, complain) VALUES (\'" + rid + "\', \'" + customer_id + "\', \'" + car_vin + "\', \'" + date + "\', \'" + odometer + "\', \'" + complain + "\');";
+		System.out.println(sql);
+		
+		try {
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Add Service Request failed:");
+			System.out.println(e);
+		}
 	}
 	
 	public static void CloseServiceRequest(MechanicShop esql) throws Exception{//5
-		
+		int wid;
+		int rid;
+		int mid;
+		String date;
+		String comment;
+		int bill;
+
+		wid = readInt("wid:");
+		rid = readInt("rid:");
+		mid = readInt("mechanic id:");
+		date = readString("date: (YYYY-MM-DD)");
+		comment = readString("comment:");
+		do {
+			bill = readInt("bill:");
+			if (bill <= 0) {
+				System.out.println("bill must be > 0");
+				continue;
+			}
+			break;
+		} while(true);
+
+		String sql;
+		sql = "INSERT INTO Closed_Request(wid, rid, mid, date, comment, bill) VALUES (\'" + wid + "\', \'" + rid + "\', \'" + mid + "\', \'" + date + "\', \'" + comment + "\', \'" + bill + "\');";
+
+		try {
+			System.out.println(sql);
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Close Service Request failed:");
+			System.out.println(e);
+		}
 	}
 	
 	public static void ListCustomersWithBillLessThan100(MechanicShop esql){//6
-		
+		String select = "SELECT C.fname, C.lname, CR.bill\n"; 
+		String from = "FROM Customer C, Service_Request SR, Closed_Request CR\n";
+		String where = "WHERE C.id = SR.customer_id AND SR.rid = CR.rid AND CR.bill < 100;";
+
+		String sql = select + from + where;
+		try {
+			System.out.println(sql);
+			esql.executeQueryAndPrintResult(sql);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 	
 	public static void ListCustomersWithMoreThan20Cars(MechanicShop esql){//7
-		
+		/*String select = "SELECT C.fname, C.lname\n"; 
+		String from = "FROM Customer C, \n";
+		String where = "WHERE C.id = SR.customer_id AND SR.rid = CR.rid AND CR.bill < 100;";
+
+		String sql = select + from + where;
+		try {
+			System.out.println(sql);
+			esql.executeQueryAndPrintResult(sql);
+		} catch (Exception e) {
+			System.out.println(e);
+		}*/
 	}
 	
 	public static void ListCarsBefore1995With50000Milles(MechanicShop esql){//8
-		
+		String select = "SELECT C.vin, C.year, SR.odometer\n"; 
+		String from = "FROM Car C, Service_Request SR\n";
+		String where = "WHERE C.vin = SR.car_vin AND C.year < 1995 AND SR.odometer >= 50000;";
+
+		String sql = select + from + where;
+		try {
+			System.out.println(sql);
+			esql.executeQueryAndPrintResult(sql);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 	
 	public static void ListKCarsWithTheMostServices(MechanicShop esql){//9
@@ -342,8 +551,19 @@ public class MechanicShop{
 	}
 	
 	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//9
-		//
-		
+		String select = "SELECT C.id, SUM(CR.bill)\n";
+		String from = "FROM Customer C, Service_Request SR, Closed_Request CR\n";
+		String where = "WHERE C.id = SR.customer_id AND SR.rid = CR.rid\n";
+		String groupby = "GROUP BY C.id\n";
+		String orderby = "ORDER BY SUM(CR.bill) DESC;";
+
+		String sql = select + from + where + groupby + orderby;
+		try {
+			System.out.println(sql);
+			esql.executeQueryAndPrintResult(sql);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 	
 }
