@@ -342,10 +342,8 @@ public class MechanicShop{
 		String fname;
 		String lname;
 		String phone;
-		int id;
 		String address;
 
-		id = readInt("ID:");
 		fname = readString("First name:");
 		lname = readString("Last name:");
 		phone = readString("Phone number:");
@@ -353,7 +351,7 @@ public class MechanicShop{
 
 		// create SQL instruction
 		String sql;
-		sql = "INSERT INTO Customer(id, fname, lname, phone, address) VALUES (\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
+		sql = "INSERT INTO Customer(fname, lname, phone, address) VALUES (\'" + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
 		System.out.println(sql);
 
 		// execute
@@ -369,10 +367,8 @@ public class MechanicShop{
 		// prompt user for data
 		String fname;
 		String lname;
-		int id;
 		int years_exp;
 
-		id = readInt("ID:");
 		fname = readString("First name:");
 		lname = readString("Last name:");
 
@@ -387,7 +383,7 @@ public class MechanicShop{
 
 		// create SQL instruction
 		String sql;
-		sql = "INSERT INTO Mechanic(id, fname, lname, experience) VALUES (\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + years_exp + "\');";
+		sql = "INSERT INTO Mechanic(fname, lname, experience) VALUES (\'" + fname + "\', \'" + lname + "\', \'" + years_exp + "\');";
 		System.out.println(sql);
 
 		// execute
@@ -430,18 +426,28 @@ public class MechanicShop{
 		} catch (Exception e) {
 			System.out.println("Add Car failed:");
 			System.out.println(e);
-		}	
+		}
+
+		// owner
+		int customer_id = readInt("Customer ID of owner:");
+		sql = "INSERT INTO Owns(customer_id, car_vin) VALUES (\'" + customer_id + "\', \'" + vin + "\');";
+		System.out.println(sql);
+
+		try {
+			esql.executeUpdate(sql);
+		} catch (Exception e) {
+			System.out.println("Update Owns table failed:");
+			System.out.println(e);
+		}
 	}
 	
 	public static void InsertServiceRequest(MechanicShop esql){//4
-		int rid;
 		int customer_id;
 		String car_vin;
 		String date; // YYYY-MM-DD
 		int odometer;
 		String complain;
 
-		rid = readInt("rid:");
 		customer_id = readInt("customer id:");
 		car_vin = readString("car vin:");
 		date = readString("date: (YYYY-MM-DD)");
@@ -458,7 +464,7 @@ public class MechanicShop{
 		complain = readString("complain:");
 
 		String sql;
-		sql = "INSERT INTO Service_Request(rid, customer_id, car_vin, date, odometer, complain) VALUES (\'" + rid + "\', \'" + customer_id + "\', \'" + car_vin + "\', \'" + date + "\', \'" + odometer + "\', \'" + complain + "\');";
+		sql = "INSERT INTO Service_Request(customer_id, car_vin, date, odometer, complain) VALUES (\'" + customer_id + "\', \'" + car_vin + "\', \'" + date + "\', \'" + odometer + "\', \'" + complain + "\');";
 		System.out.println(sql);
 		
 		try {
@@ -470,14 +476,12 @@ public class MechanicShop{
 	}
 	
 	public static void CloseServiceRequest(MechanicShop esql) throws Exception{//5
-		int wid;
 		int rid;
 		int mid;
 		String date;
 		String comment;
 		int bill;
 
-		wid = readInt("wid:");
 		rid = readInt("rid:");
 		mid = readInt("mechanic id:");
 		date = readString("date: (YYYY-MM-DD)");
@@ -492,7 +496,7 @@ public class MechanicShop{
 		} while(true);
 
 		String sql;
-		sql = "INSERT INTO Closed_Request(wid, rid, mid, date, comment, bill) VALUES (\'" + wid + "\', \'" + rid + "\', \'" + mid + "\', \'" + date + "\', \'" + comment + "\', \'" + bill + "\');";
+		sql = "INSERT INTO Closed_Request(rid, mid, date, comment, bill) VALUES (\'" + rid + "\', \'" + mid + "\', \'" + date + "\', \'" + comment + "\', \'" + bill + "\');";
 
 		try {
 			System.out.println(sql);
@@ -518,17 +522,18 @@ public class MechanicShop{
 	}
 	
 	public static void ListCustomersWithMoreThan20Cars(MechanicShop esql){//7
-		/*String select = "SELECT C.fname, C.lname\n"; 
-		String from = "FROM Customer C, \n";
-		String where = "WHERE C.id = SR.customer_id AND SR.rid = CR.rid AND CR.bill < 100;";
+		String select = "SELECT O.customer_id, COUNT(*)\n"; 
+		String from = "FROM Owns O\n";
+		String groupby = "GROUP BY O.customer_id\n";
+		String having = "HAVING COUNT(*) > 20\n";
 
-		String sql = select + from + where;
+		String sql = select + from + groupby + having;
 		try {
 			System.out.println(sql);
 			esql.executeQueryAndPrintResult(sql);
 		} catch (Exception e) {
 			System.out.println(e);
-		}*/
+		}
 	}
 	
 	public static void ListCarsBefore1995With50000Milles(MechanicShop esql){//8
@@ -546,8 +551,19 @@ public class MechanicShop{
 	}
 	
 	public static void ListKCarsWithTheMostServices(MechanicShop esql){//9
-		//
-		
+		String select = "SELECT SR.car_vin, COUNT(*)\n";
+		String from = "FROM Service_Request SR, Closed_Request CR\n";
+		String where = "WHERE SR.rid = CR.rid\n";
+		String groupby = "GROUP BY SR.car_vin\n";
+		String orderby = "ORDER BY COUNT(*) DESC LIMIT 10\n";
+
+		String sql = select + from + where + groupby + orderby;
+		try {
+			System.out.println(sql);
+			esql.executeQueryAndPrintResult(sql);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 	
 	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//9
